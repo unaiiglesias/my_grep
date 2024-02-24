@@ -1,25 +1,49 @@
 #include <stdio.h>
 #include <errno.h>
+#include <string.h>
+#include <stdlib.h>
 
+#define TAM_BUFFER_LINEA 4096 // Segun google, el mismo que el de grep
+
+char* leer_fichero (char* linea, FILE* f)
+{
+    // lee una linea entera de f y la guarda en linea
+    char* ret = fgets(linea, TAM_BUFFER_LINEA, f);
+
+    // ret contiene un puntero a linea si todo ha ido bien y NULL si no
+    return ret;
+}
 
 int main (int argc, char *argv[]) {
 
     int error_code = 0;
+    char linea[TAM_BUFFER_LINEA]; // buffer de cada linea
+
 
     if (argc == 1)
     {
-        // No se han dado argumentos, echo de lo que ponga el usuario
-        char a;
+        // No se han dado argumentos, no hay patron
+        fprintf(stderr, "ERROR: Wrong amount of arguments\n");
+        exit(1);
+    } 
+    else if (argc == 2)
+    {
+        // Se ha dado patron pero no ficheros, leemos y buscamos en stdin
+        char* ret = leer_fichero(linea, stdin);
 
-        while (a != EOF)
+        while (ret != NULL) // not EOF
         {
-            a = getchar();
-            if (a != EOF) printf("%c", a);
+            if (strstr(linea, argv[1]))
+            {
+                // Si el patron ( argv[1] ) esta en la linea leida, la imprimimos
+                printf("%s", linea);
+            }
+            ret = leer_fichero(linea, stdin);
         }
         return 0;
-    } 
+    }
 
-    // Hay varios argumentos (archivos a leer)
+    // Hay patron y varios ficheros
 
     for (int i = 1; i < argc; i++)
     {
