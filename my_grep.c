@@ -16,7 +16,7 @@ char* leer_fichero (char* linea, FILE* f)
 
 int main (int argc, char *argv[]) {
 
-    int error_code = 0;
+    int error_code = 1; // partimos de que no ha encontrado ninguna linea coincidente (ver especificacion)
     char linea[TAM_BUFFER_LINEA]; // buffer de cada linea
     char* ret; // lo usaremos para guardar el valor de retorno de leer_fichero
 
@@ -26,7 +26,7 @@ int main (int argc, char *argv[]) {
     {
         // No se han dado argumentos, no hay patron
         fprintf(stderr, "ERROR: Wrong amount of arguments\n");
-        exit(1);
+        exit(2);
     } 
     else if (argc == 2)
     {
@@ -39,10 +39,11 @@ int main (int argc, char *argv[]) {
             {
                 // Si el patron ( argv[1] ) esta en la linea leida, la imprimimos
                 printf("%s", linea);
+                error_code = 0;
             }
             ret = leer_fichero(linea, stdin);
         }
-        return 0;
+        return error_code;
     }
 
     // Hay patron y varios ficheros
@@ -58,7 +59,7 @@ int main (int argc, char *argv[]) {
 
             //printf("Codigo de error: %d\n", errno);
             perror("ERROR");
-            error_code = 1;
+            error_code = 2;
             continue; // Pasa al siguiente archivo
         }
 
@@ -70,6 +71,7 @@ int main (int argc, char *argv[]) {
             {
                 // Si el patron ( argv[1] ) esta en la linea leida, la imprimimos
                 printf("%s", linea);
+                error_code = 0;
             }
             ret = leer_fichero(linea, f);
         }
