@@ -11,6 +11,11 @@ size_t leer_fichero (char* linea, size_t* size, FILE* f)
     // lee una linea entera de f y la guarda en linea
     size_t charLeidos = getline(&linea, size, f);
 
+    /*
+        Adicionalmente, si la linea a leer es de mas de TAM_BUFFER_LINEA caracteres (que no deberia, peor bueno)
+        reserva más memoria y nos asegura que siempre va a poder almacenar la linea (sea del tamaño que sea).
+    */
+
     // charLeidos contienen el nº de caracteres leidos, si hay error o EOF devuelve -1
     return charLeidos;
 }
@@ -21,7 +26,7 @@ int main (int argc, char *argv[]) {
     char* linea = malloc(TAM_BUFFER_LINEA); // buffer de cada linea
     size_t buffSize = sizeof(linea);
     size_t leidos;
-    //printf("argc = %d\n", argc);
+    //printf("argc = %d\n", argc); // DEBUG
 
     if (argc == 1)
     {
@@ -85,6 +90,6 @@ int main (int argc, char *argv[]) {
         fclose(f);
         
     }
-    free(linea);
+    free(linea); // como linea la reservamos dinámicamente entre malloc y getline luego hay que liberarla
     return error_code;
 }
