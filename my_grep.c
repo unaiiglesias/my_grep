@@ -2,24 +2,25 @@
 #include <errno.h>
 #include <string.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 #define TAM_BUFFER_LINEA 4096 // Segun google, el mismo que el de grep
 
-char* leer_fichero (char* linea, FILE* f)
+size_t leer_fichero (char* linea, size_t* size, FILE* f)
 {
     // lee una linea entera de f y la guarda en linea
-    char* ret = fgets(linea, TAM_BUFFER_LINEA, f);
+    size_t charLeidos = getline(&linea, size, f);
 
-    // ret contiene un puntero a linea si todo ha ido bien y NULL si no
-    return ret;
+    // charLeidos contienen el nº de caracteres leidos, si hay error o EOF devuelve -1
+    return charLeidos;
 }
 
 int main (int argc, char *argv[]) {
 
     int error_code = 1; // partimos de que no ha encontrado ninguna linea coincidente (ver especificacion)
-    char linea[TAM_BUFFER_LINEA]; // buffer de cada linea
-    char* ret; // lo usaremos para guardar el valor de retorno de leer_fichero
-
+    char* linea = malloc(TAM_BUFFER_LINEA); // buffer de cada linea
+    size_t buffSize = sizeof(linea);
+    size_t leidos;
     //printf("argc = %d\n", argc);
 
     if (argc == 1)
@@ -31,9 +32,9 @@ int main (int argc, char *argv[]) {
     else if (argc == 2)
     {
         // Se ha dado patron pero no ficheros, leemos y buscamos en stdin
-        ret = leer_fichero(linea, stdin);
+        leidos = leer_fichero(linea, &buffSize, stdin);
 
-        while (ret != NULL) // not EOF
+        while (leidos != -1) // not EOF or error
         {
             if (strstr(linea, argv[1]))
             {
@@ -41,14 +42,14 @@ int main (int argc, char *argv[]) {
                 printf("%s", linea);
                 error_code = 0;
             }
-            ret = leer_fichero(linea, stdin);
+            leidos = leer_fichero(linea, &buffSize, stdin);
         }
         return error_code;
     }
 
     // Hay patron y varios ficheros
-
-    for (int i = 2; i < argc; i++)
+    int i;
+    for (i = 2; i < argc; i++)
     {
         FILE *f = fopen(argv[i], "r");
 
@@ -64,8 +65,8 @@ int main (int argc, char *argv[]) {
         }
 
         // bucle principal de lectura
-        ret = leer_fichero(linea, f);
-        while (ret != NULL) // not EOF
+        leidos = leer_fichero(linea, &buffSize, f);
+        while (leidos != -1) // not EOF or error
         {
             if (strstr(linea, argv[1]))
             {
@@ -73,7 +74,7 @@ int main (int argc, char *argv[]) {
                 printf("%s", linea);
                 error_code = 0;
             }
-            ret = leer_fichero(linea, f);
+            leidos = leer_fichero(linea, &buffSize, f);
         }
 
         /*
@@ -82,7 +83,8 @@ int main (int argc, char *argv[]) {
         }
         */
         fclose(f);
+        
     }
-
+    free(linea);
     return error_code;
 }
